@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8"/>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
+    <title>Demo</title>
+    <meta name="description" content=""/>
+    <meta name="viewport" content="width=device-width"/>
+    <base href="/"/>
+	
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.0/umd/popper.min.js" integrity="sha384-cs/chFZiN24E4KMATLdqdvsezGxaGsi4hLGOzlXwp5UZB1LY//20VyM2taTB4QvJ" crossorigin="anonymous"></script>
+	<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.0/js/bootstrap.min.js" integrity="sha384-uefMccjFJAIv6A+rW+L4AHf99KvxDjWSu1z9VI8SKNVmz4sk7buKt/6v9KI65qnm" crossorigin="anonymous"></script>
+	
+	<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.0/css/bootstrap.min.css" integrity="sha384-9gVQ4dYFwwWSjIDZnLEWnxCjeSWFphJiwGPXr1jddIhOegiu1FwO5qRGvFXOdJZ4" crossorigin="anonymous">
+</head>
+<body>
+	<div class="container">
+		<h1>Wallets Overview</h1>
+		
+		<div id="wallets"></div>
+	</div>
+	
+	<script type="text/javascript">
+		$(function() {
+		    $.get("/wallet", function(wallets){
+		    	var walletsHtml = ""
+		    	for (var i in wallets) {
+		    		walletsHtml += buildWalletTable(wallets[i]);
+		    	}
+		    	
+		    	$("#wallets").html(walletsHtml);
+		    	
+		    	for (var walletIndex in wallets) {
+		    		var wallet = wallets[walletIndex];
+		    		for (var walletEntryIndex in wallet.entries) {
+		    			getProductValue(wallet.entries[walletEntryIndex], function(entry, value) {
+		    				console.log("Writing " + value + " - to #wallet-entry-" + entry.id);
+		    				$("#wallet-entry-" + entry.id).html(value);
+		    			});
+		    		}
+		    	}
+		    });
+		});
+		
+		function buildWalletTable(wallet){
+			var walletHtml = "<h3>" + wallet.userId + "</h3>";
+			
+			walletHtml += "<table class='table'>";
+			walletHtml += "<tr><th>Currency</th><th>Amount</th><th>USD Value</th></tr>"
+			
+			for (var i in wallet.entries) {
+				var walletEntry = wallet.entries[i];
+				walletHtml += "<tr><td>" + walletEntry.currency + "</td>";
+				walletHtml += "<td>" + walletEntry.amount + "</td>";
+				walletHtml += "<td id='wallet-entry-" + walletEntry.id + "'></td></tr>";
+			}
+			
+			walletHtml += "</table>"
+			
+			return walletHtml;
+		}
+		
+		function getProductValue(walletEntry, onSuccess){
+			$.get("/wallet/price?currency=" + walletEntry.currency + "&amount=" + walletEntry.amount, 
+					function(value) {
+						onSuccess(walletEntry, value);
+					}
+			);
+		}
+	</script>
+</body>
+</html>
